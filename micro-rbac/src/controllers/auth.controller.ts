@@ -1,12 +1,35 @@
 import { Request, Response } from 'express';
 import * as InternalService from '../services/auth.internal.service';
 
-/**
- * Controller untuk verifikasi login dan pembuatan session
- */
+export const registerInternal = async (req: Request, res: Response) => {
+    try {
+        const userData = await InternalService.registerUser(req.body);
+        
+        res.status(201).json({
+            status: 'success',
+            data: userData
+        });
+    } catch (error: any) {
+        let status = 500;
+        let message = 'Internal Server Error';
+
+        if (error.message === 'USERNAME_AND_PASSWORD_REQUIRED') {
+            status = 400;
+            message = 'Username dan password wajib diisi';
+        } else if (error.message === 'USERNAME_ALREADY_EXISTS') {
+            status = 409;
+            message = 'Username sudah terdaftar';
+        }
+
+        res.status(status).json({ 
+            status: 'error', 
+            message 
+        });
+    }
+};
+
 export const verifyUserInternal = async (req: Request, res: Response) => {
     try {
-        // Pastikan req.body mengandung username, password, dan refreshToken
         const userData = await InternalService.verifyAndCreateSession(req.body);
         
         res.json({
@@ -16,8 +39,8 @@ export const verifyUserInternal = async (req: Request, res: Response) => {
     } catch (error: any) {
         let status = 500;
         let message = 'Internal Server Error';
+        console.log(error)
 
-        // Sesuaikan dengan Error Throw yang ada di Service terbaru
         if (error.message === 'USERNAME_REQUIRED') {
             status = 400;
             message = 'Username wajib diisi';
@@ -26,7 +49,6 @@ export const verifyUserInternal = async (req: Request, res: Response) => {
             message = 'Akun tidak ditemukan';
         } else if (error.message === 'INVALID_PASSWORD') {
             status = 401;
-            // Pesan dibuat umum untuk keamanan (Security Best Practice)
             message = 'Username atau Password yang Anda masukkan salah';
         } else if (error.message === 'USER_INACTIVE_OR_PENDING') {
             status = 403;
@@ -40,29 +62,22 @@ export const verifyUserInternal = async (req: Request, res: Response) => {
     }
 };
 
-/**
- * Controller untuk validasi Refresh Token (Session)
- */
 export const validateRefreshInternal = async (req: Request, res: Response) => {
     try {
         const { token } = req.body;
-        
         if (!token) {
             return res.status(400).json({
                 status: 'error',
                 message: 'Token is required'
             });
         }
-
         const session = await InternalService.validateAndGetSession(token);
-
         if (!session) {
             return res.status(401).json({
                 status: 'error',
                 message: 'Sesi telah berakhir, silakan login kembali'
             });
         }
-
         res.json({
             status: 'success',
             data: session
@@ -75,9 +90,6 @@ export const validateRefreshInternal = async (req: Request, res: Response) => {
     }
 };
 
-/**
- * Controller untuk Logout / Revoke Token
- */
 export const revokeTokenInternal = async (req: Request, res: Response) => {
     try {
         const { token } = req.body;
@@ -102,3 +114,4 @@ export const revokeTokenInternal = async (req: Request, res: Response) => {
         });
     }
 };
+

@@ -6,7 +6,6 @@ const getAccessSecret = () => process.env.JWT_ACCESS_SECRET || 'access_secret';
 const getRefreshSecret = () => process.env.JWT_REFRESH_SECRET || 'refresh_secret';
 const getInternalKey = () => process.env.INTERNAL_API_KEY || 'kskjdfh23r9sdf8sdf7sdf7sdf7sdf7sdf';
 
-
 const rbacClient = axios.create({
     baseURL: getRbacUrl(),
     headers: { 'Content-Type': 'application/json' }
@@ -17,23 +16,23 @@ rbacClient.interceptors.request.use((config) => {
     return config;
 });
 
-export const login = async (email: string, password: string) => {
+
+export const login = async (username: string, password: string) => {
     try {
-        const refreshToken = jwt.sign({ email }, getRefreshSecret(), { expiresIn: '7d' });
+        const refreshToken = jwt.sign({ username }, getRefreshSecret(), { expiresIn: '7d' });
         const response = await rbacClient.post('/verify-user', {
-            email,
+            username,
             password,
             refreshToken
         });
-
-        const userData = response.data;
+        const { data: userData } = response.data;
 
         const accessToken = jwt.sign(
             {
                 id: userData.id,
-                email: userData.email,
-                jabatan: userData.jabatan,
-                permissions: userData.permissions
+                username: userData.username,
+                role: userData.role,     
+                hp: userData.hp,         
             },
             getAccessSecret(),
             { expiresIn: '30m' }
@@ -45,6 +44,25 @@ export const login = async (email: string, password: string) => {
         const statusCode = error.response?.status || 500;
 
         const customError: any = new Error(errorMessage);
+        (customError as any).status = statusCode;
+        throw customError;
+    }
+};
+
+export const register = async (username: string, password: string, hp?: string) => {
+    try {
+        const response = await rbacClient.post('/register', {
+            username,
+            password,
+            hp
+        });
+
+        return response.data.data;
+    } catch (error: any) {
+        const errorMessage = error.response?.data?.message || 'Gagal mendaftar pengguna baru';
+        const statusCode = error.response?.status || 500;
+
+        const customError: any = new Error(errorMessage);
         customError.status = statusCode;
         throw customError;
     }
@@ -52,16 +70,22 @@ export const login = async (email: string, password: string) => {
 
 export const refresh = async (oldRefreshToken: string) => {
     try {
-        jwt.verify(oldRefreshToken, getRefreshSecret());
+        const decoded: any = jwt.verify(oldRefreshToken, getRefreshSecret());
 
         const response = await rbacClient.post('/validate-refresh-token', {
             token: oldRefreshToken
         });
 
-        const userData = response.data;
+        const { data: userData } = response.data;
 
         const accessToken = jwt.sign(
-            { id: userData.id, email: userData.email, jabatan: userData.jabatan, permissions: userData.permissions },
+            { 
+                id: userData.id, 
+                username: userData.username, 
+                role: userData.role, 
+                hp: userData.hp,
+                permissions: userData.permissions || [] 
+            },
             getAccessSecret(),
             { expiresIn: '20m' }
         );
@@ -73,6 +97,7 @@ export const refresh = async (oldRefreshToken: string) => {
     }
 };
 
+
 export const logout = async (token: string) => {
     try {
         await rbacClient.post('/revoke-token', { token });
@@ -80,6 +105,7 @@ export const logout = async (token: string) => {
         console.error("Logout Revoke Error:", error);
     }
 };
+
 
 export const verifyAccessToken = (token: string) => {
     try {
@@ -89,11 +115,11 @@ export const verifyAccessToken = (token: string) => {
 
         if (error instanceof TokenExpiredError) {
             const expiredError: any = new Error('Token expired');
-            expiredError.status = 403; 
+            (expiredError as any).status = 403; 
             throw expiredError;
         }
         const invalidError: any = new Error('Invalid token');
-        invalidError.status = 401;
+        (invalidError as any).status = 401;
         throw invalidError;
     }
 };

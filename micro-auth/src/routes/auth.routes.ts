@@ -8,5 +8,5 @@ router.post('/login', GatewayMiddleware.restrictToInternal, AuthController.login
 router.post('/refresh', GatewayMiddleware.restrictToInternal, AuthController.refreshController);
 router.post('/me', GatewayMiddleware.restrictToInternal, AuthController.meController);
 router.post('/logout', AuthController.logoutController);
-
+router.post('/register', AuthController.registerController);
 export default router;

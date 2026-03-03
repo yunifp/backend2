@@ -86,3 +86,31 @@ export const meController = async (req: Request, res: Response) => {
         });
     }
 };
+
+export const registerController = async (req: Request, res: Response) => {
+    try {
+        // Menyesuaikan dengan Prisma schema (username)
+        const { username, password, hp } = req.body;
+
+        if (!username || !password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Username dan password wajib diisi'
+            });
+        }
+
+        const user = await AuthService.register(username, password, hp);
+
+        return res.status(201).json({
+            success: true,
+            message: 'Registrasi berhasil, status akun PENDING',
+            user
+        });
+
+    } catch (error: any) {
+        return res.status(error.status || 500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};

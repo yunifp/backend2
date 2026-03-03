@@ -14,4 +14,4 @@ app.use(cors({ origin: '*', credentials: true }));
 
 app.use('/', authRoutes);
 
-app.listen(3002, () => console.log(`Auth Service running on port ${process.env.PORT || 3002}`));
+app.listen(3001, () => console.log(`Auth Service running on port ${process.env.PORT || 3001}`));

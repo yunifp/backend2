@@ -5,9 +5,8 @@ import { restrictToInternal } from '../middlewares/gatewayMiddleware';
 
 const router = Router();
 
-// Endpoint untuk dipanggil Auth Service
 router.post('/verify-user', restrictToInternal, InternalController.verifyUserInternal);
 router.post('/validate-refresh-token', restrictToInternal, InternalController.validateRefreshInternal);
 router.post('/revoke-token', restrictToInternal, InternalController.revokeTokenInternal);
-
+router.post('/register', restrictToInternal, InternalController.registerInternal);
 export default router;

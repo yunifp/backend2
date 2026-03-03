@@ -16,7 +16,7 @@ import { createLoggerMiddleware } from './middlewares/logger.middleware';
 const app = express();
 
 app.use(cors({
-    origin: config.corsOrigin,
+    origin: "*",
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-app-id'],
     credentials: true

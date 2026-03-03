@@ -23,7 +23,9 @@ enum UserStatus {
 
 model User {
   id        Int        @id @default(autoincrement())
-  username  String     @unique @db.VarChar(100) // Bisa diisi Email / NIM
+  nim       String?    @unique @db.VarChar(50)  
+  email     String     @unique @db.VarChar(100) 
+  username  String     @unique @db.VarChar(100) 
   password  String     @db.VarChar(255)
   hp        String?    @db.VarChar(50)
   role      Role       @default(USER)

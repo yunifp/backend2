@@ -17,11 +17,11 @@ rbacClient.interceptors.request.use((config) => {
 });
 
 
-export const login = async (username: string, password: string) => {
+export const login = async (identifier: string, password: string) => {
     try {
-        const refreshToken = jwt.sign({ username }, getRefreshSecret(), { expiresIn: '7d' });
+        const refreshToken = jwt.sign({ identifier }, getRefreshSecret(), { expiresIn: '7d' });
         const response = await rbacClient.post('/verify-user', {
-            username,
+            identifier, // Payload ini ditangkap di RBAC verifyAndCreateSession
             password,
             refreshToken
         });
@@ -30,6 +30,8 @@ export const login = async (username: string, password: string) => {
         const accessToken = jwt.sign(
             {
                 id: userData.id,
+                nim: userData.nim,
+                email: userData.email,
                 username: userData.username,
                 role: userData.role,     
                 hp: userData.hp,         
@@ -42,16 +44,18 @@ export const login = async (username: string, password: string) => {
     } catch (error: any) {
         const errorMessage = error.response?.data?.message || 'Layanan autentikasi tidak tersedia';
         const statusCode = error.response?.status || 500;
-
         const customError: any = new Error(errorMessage);
-        (customError as any).status = statusCode;
+        customError.status = statusCode;
         throw customError;
     }
 };
 
-export const register = async (username: string, password: string, hp?: string) => {
+// Register mengirim parameter lengkap
+export const register = async (nim: string, email: string, username: string, password: string, hp?: string) => {
     try {
         const response = await rbacClient.post('/register', {
+            nim,
+            email,
             username,
             password,
             hp
@@ -61,7 +65,6 @@ export const register = async (username: string, password: string, hp?: string) 
     } catch (error: any) {
         const errorMessage = error.response?.data?.message || 'Gagal mendaftar pengguna baru';
         const statusCode = error.response?.status || 500;
-
         const customError: any = new Error(errorMessage);
         customError.status = statusCode;
         throw customError;

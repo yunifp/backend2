@@ -75,9 +75,11 @@ export const UserSchema = z.object({
 });
 
 export const CreateUserSchema = UserSchema.extend({
+    nim: z.string().min(3).max(50).optional(), 
     email: z.string().email().max(100),
     username: z.string().min(3).max(50),
-    password: z.string().min(8)
+    password: z.string().min(8),
+    hp: z.string().max(50).optional()
 });
 
 export const UpdateUserSchema = UserSchema.partial();

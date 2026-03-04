@@ -50,7 +50,6 @@ export const login = async (identifier: string, password: string) => {
     }
 };
 
-// Register mengirim parameter lengkap
 export const register = async (nim: string, email: string, username: string, password: string, hp?: string) => {
     try {
         const response = await rbacClient.post('/register', {

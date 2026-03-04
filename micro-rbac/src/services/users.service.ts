@@ -4,31 +4,63 @@ import { recordAuditTrail } from '../lib/audit';
 import { User, UserStatus } from '@prisma/client';
 
 const UserService = {
-    async getAll(params: { page: number; limit: number; search?: string }) {
-        const { page, limit, search } = params;
+async getAll(params: { page: number; limit: number; search?: string; role?: string }) {
+        const { page, limit, search, role } = params;
         const skip = (page - 1) * limit;
 
-       
-        const where: any = search ? {
-            OR: [
+        const where: any = {};
+
+        if (search) {
+            where.OR = [
                 { username: { contains: search } },
-                { hp: { contains: search } },
-            ]
-        } : {};
+                { email: { contains: search } },
+                { nim: { contains: search } },
+            ];
+        }
+
+        if (role) {
+            where.role = role;
+        }
 
         const [users, total] = await Promise.all([
             prisma.user.findMany({
                 where,
                 skip,
                 take: limit,
-                orderBy: { id: 'desc' }
+                orderBy: { createdAt: 'desc' },
+                select: {
+                    id: true,
+                    nim: true,
+                    email: true,
+                    username: true,
+                    hp: true,
+                    role: true,
+                    status: true,
+                    createdAt: true
+                }
             }),
             prisma.user.count({ where })
         ]);
 
-        const sanitized = users.map(({ password, ...user }) => user);
-        
-        return { data: sanitized, total };
+        return { data: users, total };
+    },
+
+    async updateStatus(id: number, status: UserStatus) {
+        const existingUser = await prisma.user.findUnique({ where: { id } });
+        if (!existingUser) throw new Error('User tidak ditemukan');
+
+        const updatedUser = await prisma.user.update({
+            where: { id },
+            data: { status },
+            select: {
+                id: true,
+                username: true,
+                email: true,
+                status: true
+            }
+        });
+
+        return updatedUser;
     },
 
     async getById(id: number) {

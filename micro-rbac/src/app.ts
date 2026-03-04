@@ -56,7 +56,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     return this.toString();
 };
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
     console.log(`RBAC Berjalan pada port ${PORT}`);
     console.log(`Internal Endpoint tersedia di http://localhost:${PORT}`);

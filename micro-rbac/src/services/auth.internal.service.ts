@@ -11,7 +11,8 @@ export const verifyAndCreateSession = async (data: any) => {
         where: {
             OR: [
                 { username: identifier },
-                { email: identifier }
+                { email: identifier },
+                { nim: identifier }
             ]
         },
     });

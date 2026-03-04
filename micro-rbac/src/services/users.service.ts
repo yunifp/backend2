@@ -4,8 +4,8 @@ import { recordAuditTrail } from '../lib/audit';
 import { User, UserStatus } from '@prisma/client';
 
 const UserService = {
-async getAll(params: { page: number; limit: number; search?: string; role?: string }) {
-        const { page, limit, search, role } = params;
+   async getAll(params: { page: number; limit: number; search?: string; role?: string; status?: UserStatus | string }) {
+        const { page, limit, search, role, status } = params;
         const skip = (page - 1) * limit;
 
         const where: any = {};
@@ -20,6 +20,10 @@ async getAll(params: { page: number; limit: number; search?: string; role?: stri
 
         if (role) {
             where.role = role;
+        }
+
+        if (status) {
+            where.status = status;
         }
 
         const [users, total] = await Promise.all([
@@ -70,7 +74,7 @@ async getAll(params: { page: number; limit: number; search?: string; role?: stri
 
         if (!user) return null;
         const { password, ...safeUser } = user;
-        
+
         return {
             ...safeUser,
             permissions: []
@@ -82,8 +86,8 @@ async getAll(params: { page: number; limit: number; search?: string; role?: stri
             data.password = await argon2.hash(data.password);
         }
 
-        const result = await prisma.user.create({ 
-            data 
+        const result = await prisma.user.create({
+            data
         });
 
         const { password: _p, ...safeNewData } = result;
@@ -137,7 +141,7 @@ async getAll(params: { page: number; limit: number; search?: string; role?: stri
         const result = await prisma.user.delete({ where: { id } });
 
         const { password: _p, ...safeOldData } = oldUser;
-        
+
         recordAuditTrail({
             req,
             tableName: 'users',

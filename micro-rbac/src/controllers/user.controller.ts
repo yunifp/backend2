@@ -12,15 +12,16 @@ const sanitizeResponse = (data: any) => {
 const UserController = {
     async handleAction(req: Request, res: Response) {
         try {
-            const { action, data, id, page, limit, search, role } = req.body;
+            const { action, data, id, page, limit, search, role, status } = req.body;
 
             switch (action) {
-                case 'GET_ALL':
+              case 'GET_ALL':
                     const result = await UserService.getAll({
                         page: Number(page) || 1,
                         limit: Number(limit) || 10,
                         search: search,
-                        role: role
+                        role: role,
+                        status: status 
                     });
                     return res.status(200).json({
                         success: true,

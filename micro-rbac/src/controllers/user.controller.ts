@@ -15,18 +15,38 @@ const UserController = {
             const { action, data, id, page, limit, search, role, status } = req.body;
 
             switch (action) {
-              case 'GET_ALL':
+                case 'GET_ALL':
                     const result = await UserService.getAll({
                         page: Number(page) || 1,
                         limit: Number(limit) || 10,
                         search: search,
                         role: role,
-                        status: status 
+                        status: status
                     });
                     return res.status(200).json({
                         success: true,
                         data: result.data,
                         total: result.total
+                    });
+
+                case 'UPDATE':
+                    if (!id) {
+                        return res.status(400).json({
+                            success: false,
+                            message: 'ID wajib diisi'
+                        });
+                    }
+
+                    const updatedUserData = await UserService.update(
+                        req,
+                        Number(id),
+                        data
+                    );
+
+                    return res.status(200).json({
+                        success: true,
+                        message: 'Data user berhasil diperbarui',
+                        data: sanitizeResponse(updatedUserData)
                     });
 
                 case 'UPDATE_STATUS':
@@ -38,6 +58,17 @@ const UserController = {
                         success: true,
                         message: `Status berhasil diubah menjadi ${data.status}`,
                         data: updated
+                    });
+
+                case 'UPDATE_PASSWORD':
+                    if (!id || !data?.newPassword) {
+                        return res.status(400).json({ success: false, message: 'ID dan newPassword wajib diisi' });
+                    }
+                    const updatedPassword = await UserService.updatePassword(req, Number(id), data.newPassword);
+                    return res.status(200).json({
+                        success: true,
+                        message: 'Password berhasil diubah',
+                        data: updatedPassword
                     });
 
                 default:

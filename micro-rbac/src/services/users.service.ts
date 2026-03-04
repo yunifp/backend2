@@ -4,7 +4,7 @@ import { recordAuditTrail } from '../lib/audit';
 import { User, UserStatus } from '@prisma/client';
 
 const UserService = {
-   async getAll(params: { page: number; limit: number; search?: string; role?: string; status?: UserStatus | string }) {
+    async getAll(params: { page: number; limit: number; search?: string; role?: string; status?: UserStatus | string }) {
         const { page, limit, search, role, status } = params;
         const skip = (page - 1) * limit;
 
@@ -171,6 +171,33 @@ const UserService = {
             }
         };
     },
+
+    async updatePassword(req: any, id: number, newPassword: string) {
+
+        // cek password lama terlebih dahulu
+        const user = await prisma.user.findUnique({ where: { id } });
+        if (!user) throw new Error('USER_NOT_FOUND');
+        const hashedPassword = await argon2.hash(newPassword);
+
+        const result = await prisma.user.update({
+            where: { id },
+            data: { password: hashedPassword }
+        });
+
+        const { password: _oldPass, ...safeOldData } = user;
+        const { password: _newPass, ...safeNewData } = result;
+        recordAuditTrail({
+            req,
+            tableName: 'users',
+            recordId: id,
+            action: 'UPDATE_PASSWORD',
+            dbOperation: 'UPDATE',
+            oldData: safeOldData,
+            newData: safeNewData
+        });
+    }
+
 };
+
 
 export default UserService;

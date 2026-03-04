@@ -2,7 +2,7 @@ import rateLimit from 'express-rate-limit';
 
 export const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, 
-    max: 100, 
+    max: 10000, 
     message: {
         status: 429,
         message: 'Terlalu banyak permintaan, silakan coba lagi setelah 15 menit'

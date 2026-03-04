@@ -7,7 +7,7 @@ import { onProxyReq, onProxyRes } from '../utils/proxyHelper';
 
 const router = Router();
 
-router.use('/master/wilayah', validateAppId, validateToken, createProxyMiddleware({
+router.use('/master', validateAppId, validateToken, createProxyMiddleware({
     target: config.services.master,
     changeOrigin: true,
     on: {
@@ -15,7 +15,7 @@ router.use('/master/wilayah', validateAppId, validateToken, createProxyMiddlewar
         proxyRes: onProxyRes
     },
     pathRewrite: {
-        '^/': '/master/wilayah/'
+        '^/': '/master/'
     }
 }));
 

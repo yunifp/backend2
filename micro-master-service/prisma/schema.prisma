@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Agama {
+  ISLAM
+  KRISTEN
+  KATOLIK
+  HINDU
+  BUDHA
+  KHONGHUCU
+}
+
+enum Jenjang {
+  D3
+  D4
+  S1
+  S2
+  S3
+}
+
+enum JenisKelamin {
+  L
+  P
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Fakultas {
+  id_fakultas Int     @id @default(autoincrement())
+  nama        String
+  prodis      Prodi[]
+}
+
+model Prodi {
+  id_prodi    Int       @id @default(autoincrement())
+  fakultas_id Int
+  nama        String
+  fakultas    Fakultas  @relation(fields: [fakultas_id], references: [id_fakultas])
+  profiles    Profile[]
+}
+
+model Profile {
+  id_pengguna      Int          @id // FK dari Auth Service
+  nama_lengkap     String
+  foto             String?
+  tempat_lahir     String
+  tanggal_lahir    DateTime
+  program_studi_id Int
+  angkatan         Int
+  tahun_lulus      Int
+  tanggal_wisuda   DateTime?
+  agama            Agama
+  jenjang          Jenjang
+  jenis_kelamin    JenisKelamin
+  judul_skripsi    String?
+  gelar            String?
+  sosial_media     Json? // { linkedin: "", instagram: "" }
+  prodi            Prodi        @relation(fields: [program_studi_id], references: [id_prodi])
+}
+
+model Karir {
+  id_karir        Int      @id @default(autoincrement())
+  id_pengguna     Int
+  posisi_pekerjaan String
+  nama_perusahaan String
+  lokasi_pekerjaan String
+  tahun_masuk     Int
+  tahun_keluar    Int?
+  saat_ini        Boolean  @default(false)
+  jenis_pekerjaan String?  // Remote, On-site, dll
+  sektor_pekerjaan_id String
+  sektor              SektorPekerjaan @relation(fields: [sektor_pekerjaan_id], references: [id_sektor])
+}
+
+model SektorPekerjaan {
+  id_sektor       String   @id
+  nama_sektor     String
+  karirs          Karir[]
+}
+
+model KategoriPost {
+  id_kategori Int        @id @default(autoincrement())
+  nama        String
+  posts       Postingan[]
+}
+
+model Postingan {
+  id_post      Int          @id @default(autoincrement())
+  judul        String
+  slug         String       @unique
+  konten       String       @db.Text
+  thumbnail    String?
+  status       PostStatus   @default(DRAFT)
+  diterbitkan  DateTime?
+  kategori_id  Int
+  author_id    Int
+  jumlah_view  Int          @default(0)
+  kategori     KategoriPost @relation(fields: [kategori_id], references: [id_kategori])
+  created_at   DateTime     @default(now())
+}

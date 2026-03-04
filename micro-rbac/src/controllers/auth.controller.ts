@@ -41,16 +41,16 @@ export const verifyUserInternal = async (req: Request, res: Response) => {
         let message = 'Internal Server Error';
         console.log(error)
 
-        if (error.message === 'USERNAME_REQUIRED') {
+        if (error.message === 'IDENTIFIER_REQUIRED') {
             status = 400;
-            message = 'Username wajib diisi';
+            message = 'Identifier (Username/Email/NIM) wajib diisi';
         } else if (error.message === 'USER_NOT_FOUND') {
             status = 404;
             message = 'Akun tidak ditemukan';
         } else if (error.message === 'INVALID_PASSWORD') {
             status = 401;
             message = 'Username atau Password yang Anda masukkan salah';
-        } else if (error.message === 'USER_INACTIVE_OR_PENDING') {
+        } else if (error.message === 'USER_INACTIVE') { 
             status = 403;
             message = 'Akun Anda belum aktif atau sedang ditangguhkan. Silakan hubungi admin.';
         }

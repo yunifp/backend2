@@ -18,6 +18,7 @@ router.use('/users', validateAppId, validateToken, createProxyMiddleware({
         '^/': '/users/'
     }
 }));
+
 router.use('/users/get-by-id', validateAppId, validateToken, createProxyMiddleware({
     target: config.services.rbac,
     changeOrigin: true,

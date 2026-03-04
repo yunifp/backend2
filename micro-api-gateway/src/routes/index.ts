@@ -7,7 +7,7 @@ import rbacRoutes from './rbac.routes';
 import masterRoutes from './master.routes';
 import notificationRoutes from './notification.routes';
 import logsRoutes from './logs.routes';
-import userRoutes from './user.route';
+
 import { globalLimiter, authLimiter } from '../middlewares/rateLimiter.middleware'
 
 const router = Router();
@@ -15,14 +15,11 @@ const router = Router();
 router.use('/auth', authLimiter, createProxyMiddleware({
     target: config.services.auth,
     changeOrigin: true,
-    on: {
-        proxyReq: onProxyReq,
-        proxyRes: onProxyRes
-    },
+    on: { proxyReq: onProxyReq, proxyRes: onProxyRes },
     pathRewrite: { '^/api/auth': '' }
 }));
 
-router.use('/users', globalLimiter, userRoutes);
+
 router.use('/', globalLimiter, rbacRoutes);
 router.use('/', globalLimiter, masterRoutes);
 router.use('/', globalLimiter, notificationRoutes);

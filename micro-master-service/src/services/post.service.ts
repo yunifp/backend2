@@ -1,13 +1,14 @@
 import { prisma } from '../lib/prisma';
 import { recordAuditTrail } from '../lib/audit';
+import axios from 'axios';
+import FormData from 'form-data';
+import { config } from '../config';
 
-// Helper sederhana untuk membuat slug dari judul
 const createSlug = (text: string) => {
     return text.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
 };
 
 export const PostService = {
-    // --- KATEGORI POST SERVICE ---
     async getAllKategori() {
         return await prisma.kategoriPost.findMany({
             orderBy: { nama: 'asc' },
@@ -38,19 +39,12 @@ export const PostService = {
         return true;
     },
 
-    // --- POSTINGAN SERVICE ---
-    async getAllPost(params: {
-        page: number;
-        limit: number;
-        search?: string;
-        status?: any;
-        kategoriId?: number;
-    }) {
+    async getAllPost(params: { page: number; limit: number; search?: string; status?: any; kategoriId?: number; }) {
         const { page, limit, search, status, kategoriId } = params;
         const skip = (page - 1) * limit;
-
         const where: any = {};
-        if (search) where.judul = { contains: search, mode: 'insensitive' };
+
+        if (search) where.judul = { contains: search };
         if (status) where.status = status;
         if (kategoriId) where.kategori_id = Number(kategoriId);
 
@@ -69,13 +63,40 @@ export const PostService = {
     },
 
     async createPost(req: any, data: any) {
+        let fileId = data?.thumbnail;
+
+        if (req.file) {
+            try {
+                const formData = new FormData();
+                formData.append('action', 'UPLOAD');
+                formData.append('folder', 'post_thumbnails');
+                formData.append('file', req.file.buffer, {
+                    filename: req.file.originalname,
+                    contentType: req.file.mimetype
+                });
+
+                const fileRes = await axios.post(`${config.services.file}/file`, formData, {
+                    headers: {
+                        ...formData.getHeaders(),
+                        'x-internal-key': config.internalApiKey
+                    }
+                });
+
+                fileId = fileRes.data.data.id;
+            } catch (error: any) {
+                throw new Error("Gagal mengupload thumbnail ke File Service");
+            }
+        }
+
         const result = await prisma.postingan.create({
             data: {
                 ...data,
                 slug: data.slug || `${createSlug(data.judul)}-${Date.now()}`,
                 kategori_id: Number(data.kategori_id),
                 author_id: Number(data.author_id),
-                diterbitkan: data.status === 'PUBLISHED' ? new Date() : null
+                status: data.status || 'DRAFT',
+                diterbitkan: data.status === 'PUBLISHED' ? new Date() : null,
+                thumbnail: fileId || null
             }
         });
 
@@ -83,6 +104,7 @@ export const PostService = {
             req, tableName: 'postingans', recordId: result.id_post,
             action: 'CREATE', dbOperation: 'INSERT', oldData: null, newData: result
         });
+
         return result;
     },
 
@@ -90,10 +112,34 @@ export const PostService = {
         const oldData = await prisma.postingan.findUnique({ where: { id_post: id } });
         if (!oldData) throw new Error("Postingan tidak ditemukan.");
 
-        // Update tanggal terbit jika status berubah menjadi PUBLISHED
         let publishedAt = oldData.diterbitkan;
         if (data.status === 'PUBLISHED' && oldData.status !== 'PUBLISHED') {
             publishedAt = new Date();
+        }
+
+        let fileId = data?.thumbnail;
+
+        if (req.file) {
+            try {
+                const formData = new FormData();
+                formData.append('action', 'UPLOAD');
+                formData.append('folder', 'post_thumbnails');
+                formData.append('file', req.file.buffer, {
+                    filename: req.file.originalname,
+                    contentType: req.file.mimetype
+                });
+
+                const fileRes = await axios.post(`${config.services.file}/file`, formData, {
+                    headers: {
+                        ...formData.getHeaders(),
+                        'x-internal-key': config.internalApiKey
+                    }
+                });
+
+                fileId = fileRes.data.data.id;
+            } catch (error: any) {
+                throw new Error("Gagal mengupload thumbnail baru ke File Service");
+            }
         }
 
         const result = await prisma.postingan.update({
@@ -101,7 +147,8 @@ export const PostService = {
             data: {
                 ...data,
                 kategori_id: data.kategori_id ? Number(data.kategori_id) : undefined,
-                diterbitkan: publishedAt
+                diterbitkan: publishedAt,
+                thumbnail: fileId !== undefined ? fileId : oldData.thumbnail
             }
         });
 
@@ -111,6 +158,42 @@ export const PostService = {
         });
         return result;
     },
+
+async deletePost(req: any, id: number) {
+    const oldData = await prisma.postingan.findUnique({
+        where: { id_post: Number(id) } 
+    });
+    if (!oldData) throw new Error("Postingan tidak ditemukan.");
+    
+    if (oldData.thumbnail) {
+        try {
+            await axios.post(`${config.services.file}/file`, {
+                action: 'DELETE',
+                id: oldData.thumbnail
+            }, {
+                headers: {
+                    'x-internal-key': config.internalApiKey,
+                    'Content-Type': 'application/json'
+                }
+            });
+            console.log(`Thumbnail ${oldData.thumbnail} berhasil dihapus dari file service`);
+        } catch (error: any) {
+            console.error("Gagal hapus file dari file service:", error.message);
+
+        }
+    }
+    
+    await prisma.postingan.delete({
+        where: { id_post: Number(id) }
+    });
+    
+    recordAuditTrail({
+        req, tableName: 'postingans', recordId: id,
+        action: 'DELETE', dbOperation: 'DELETE', oldData, newData: null
+    });
+
+    return true;
+},
 
     async incrementView(id: number) {
         return await prisma.postingan.update({

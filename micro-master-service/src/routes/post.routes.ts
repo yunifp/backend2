@@ -2,11 +2,13 @@ import { Router } from 'express';
 import { PostController } from '../controllers/post.controller';
 import { restrictToInternal } from '../middlewares/gatewayMiddleware';
 import { extractUserFromHeader } from '../middlewares/extractUser.middleware';
-import { authorizeAction } from '../middlewares/rbac.middleware';
+import multer from 'multer';
 
 const router = Router();
 
-router.post('/post', restrictToInternal, extractUserFromHeader, PostController.handlePostAction);
+const upload = multer({ storage: multer.memoryStorage() });
+
+router.post('/post', restrictToInternal, extractUserFromHeader, upload.single('file'), PostController.handlePostAction);
 router.post('/kategori', restrictToInternal, extractUserFromHeader, PostController.handleKategoriAction);
 
 export default router;

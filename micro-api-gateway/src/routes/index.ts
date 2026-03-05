@@ -19,6 +19,12 @@ router.use('/auth', authLimiter, createProxyMiddleware({
     pathRewrite: { '^/api/auth': '' }
 }));
 
+router.use('/file', globalLimiter, createProxyMiddleware({
+    target: config.services.file,
+    changeOrigin: true,
+    on: { proxyReq: onProxyReq, proxyRes: onProxyRes },
+    pathRewrite: { '^/api/file': '/file' }
+}));
 
 router.use('/master', globalLimiter, masterRoutes);
 router.use('/rbac', globalLimiter, rbacRoutes);

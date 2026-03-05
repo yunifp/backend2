@@ -13,6 +13,7 @@ export const config = {
         logs: process.env.LOG_SERVICE_URL || 'http://localhost:3003',
         notification: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3004', 
         master: process.env.MASTER_SERVICE_URL || 'http://localhost:3005',
+        file: process.env.FILE_SERVICE_URL || 'http://localhost:3006', 
     }
 };
 

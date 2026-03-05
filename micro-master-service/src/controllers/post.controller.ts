@@ -25,7 +25,17 @@ export const PostController = {
 
     async handlePostAction(req: Request, res: Response) {
         try {
-            const { action, id, data, page = 1, limit = 10, search, status, kategoriId } = req.body;
+            const { action, id, page = 1, limit = 10, search, status, kategoriId } = req.body;
+            
+            let parsedData = req.body.data;
+            if (typeof parsedData === 'string') {
+                try {
+                    parsedData = JSON.parse(parsedData);
+                } catch (e) {
+                    return res.status(400).json({ success: false, message: 'Format data tidak valid' });
+                }
+            }
+
             switch (action) {
                 case 'GET_ALL':
                     const result = await PostService.getAllPost({
@@ -37,11 +47,14 @@ export const PostController = {
                         meta: { total: result.total, page: Number(page), limit: Number(limit) }
                     });
                 case 'CREATE':
-                    const created = await PostService.createPost(req, data);
+                    const created = await PostService.createPost(req, parsedData);
                     return res.status(201).json({ success: true, data: created });
                 case 'UPDATE':
-                    const updated = await PostService.updatePost(req, Number(id), data);
+                    const updated = await PostService.updatePost(req, Number(id), parsedData);
                     return res.status(200).json({ success: true, data: updated });
+                case 'DELETE':
+                    await PostService.deletePost(req, Number(id));
+                    return res.status(200).json({ success: true, message: 'Postingan berhasil dihapus' });
                 case 'INCREMENT_VIEW':
                     await PostService.incrementView(Number(id));
                     return res.status(200).json({ success: true });

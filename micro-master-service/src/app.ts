@@ -36,11 +36,10 @@ app.get('/health', (req: Request, res: Response) => {
     res.status(200).json({ status: 'UP', service: 'Master-Service' });
 });
 
-app.use('/master', profileRoutes);
-app.use('/master', fakultasProdiRoutes);
-app.use('/master', karirRoutes);
-app.use('/master', postRoutes);
-
+app.use('/master/profile', profileRoutes);
+app.use('/master/karir-sektor', karirRoutes);
+app.use('/master/fakultas-prodi', fakultasProdiRoutes);
+app.use('/master/post-kategori', postRoutes);
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     console.error(`[Error] ${err.message}`);

@@ -6,6 +6,7 @@ import { authorizeAction } from '../middlewares/rbac.middleware';
 
 const router = Router();
 
-router.post('/profile', restrictToInternal, extractUserFromHeader, ProfileController.handleAction);
+router.post('/create-profile', restrictToInternal, ProfileController.createNewProfile);
+router.post('/', restrictToInternal, extractUserFromHeader, ProfileController.handleAction);
 
 export default router;

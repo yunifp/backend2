@@ -33,8 +33,9 @@ export const login = async (identifier: string, password: string) => {
                 nim: userData.nim,
                 email: userData.email,
                 username: userData.username,
-                role: userData.role,     
-                hp: userData.hp,         
+                role: userData.role,
+                hp: userData.hp,
+                status: userData.status,
             },
             getAccessSecret(),
             { expiresIn: '30m' }
@@ -81,12 +82,14 @@ export const refresh = async (oldRefreshToken: string) => {
         const { data: userData } = response.data;
 
         const accessToken = jwt.sign(
-            { 
-                id: userData.id, 
-                username: userData.username, 
-                role: userData.role, 
+            {
+                id: userData.id,
+                nim: userData.nim,
+                email: userData.email,
+                username: userData.username,
+                role: userData.role,
                 hp: userData.hp,
-                permissions: userData.permissions || [] 
+                status: userData.status,
             },
             getAccessSecret(),
             { expiresIn: '20m' }
@@ -117,7 +120,7 @@ export const verifyAccessToken = (token: string) => {
 
         if (error instanceof TokenExpiredError) {
             const expiredError: any = new Error('Token expired');
-            (expiredError as any).status = 403; 
+            (expiredError as any).status = 403;
             throw expiredError;
         }
         const invalidError: any = new Error('Invalid token');

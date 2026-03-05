@@ -10,9 +10,9 @@ export const config = {
     services: {
         auth: process.env.AUTH_SERVICE_URL || 'http://localhost:3001',
         rbac: process.env.RBAC_SERVICE_URL || 'http://localhost:3002',
-        notification: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3003', 
-        master: process.env.MASTER_SERVICE_URL || 'http://localhost:3004',
-        logs: process.env.LOG_SERVICE_URL || 'http://localhost:3005',
+        logs: process.env.LOG_SERVICE_URL || 'http://localhost:3003',
+        notification: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3004', 
+        master: process.env.MASTER_SERVICE_URL || 'http://localhost:3005',
     }
 };
 

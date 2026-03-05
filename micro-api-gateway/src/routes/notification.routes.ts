@@ -7,7 +7,7 @@ import { onProxyReq, onProxyRes } from '../utils/proxyHelper';
 
 const router = Router();
 
-router.use('/notifications', validateAppId, validateToken, createProxyMiddleware({
+router.use('/', validateAppId, validateToken, createProxyMiddleware({
     target: config.services.notification,
     changeOrigin: true,
     on: {

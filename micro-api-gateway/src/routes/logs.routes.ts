@@ -7,7 +7,7 @@ import { onProxyReq, onProxyRes } from '../utils/proxyHelper';
 
 const router = Router();
 
-router.use('/logs/configs', validateAppId, validateToken, createProxyMiddleware({
+router.use('/configs', validateAppId, validateToken, createProxyMiddleware({
     target: config.services.logs,
     changeOrigin: true,
     on: {
@@ -19,7 +19,7 @@ router.use('/logs/configs', validateAppId, validateToken, createProxyMiddleware(
     }
 }));
 
-router.use('/logs/activities', validateAppId, validateToken, createProxyMiddleware({
+router.use('/activities', validateAppId, validateToken, createProxyMiddleware({
     target: config.services.logs,
     changeOrigin: true,
     on: {
@@ -31,7 +31,7 @@ router.use('/logs/activities', validateAppId, validateToken, createProxyMiddlewa
     }
 }));
 
-router.use('/logs/audits', validateAppId, validateToken, createProxyMiddleware({
+router.use('/audits', validateAppId, validateToken, createProxyMiddleware({
     target: config.services.logs,
     changeOrigin: true,
     on: {
@@ -43,7 +43,7 @@ router.use('/logs/audits', validateAppId, validateToken, createProxyMiddleware({
     }
 }));
 
-router.use('/logs/services', validateAppId, validateToken, createProxyMiddleware({
+router.use('/services', validateAppId, validateToken, createProxyMiddleware({
     target: config.services.logs,
     changeOrigin: true,
     on: {

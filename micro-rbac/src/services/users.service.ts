@@ -1,7 +1,9 @@
 import { prisma } from '../lib/prisma';
 import argon2 from 'argon2';
+import { config } from '../config';
 import { recordAuditTrail } from '../lib/audit';
 import { User, UserStatus } from '@prisma/client';
+import axios from 'axios';
 
 const UserService = {
     async getAll(params: { page: number; limit: number; search?: string; role?: string; status?: UserStatus | string }) {
@@ -86,12 +88,41 @@ const UserService = {
             data.password = await argon2.hash(data.password);
         }
 
+        // 2. Simpan user baru ke database RBAC
         const result = await prisma.user.create({
-            data
+            data: {
+                nim: data.nim,
+                email: data.email,
+                username: data.username,
+                password: data.password,
+                hp: data.hp,
+                role: data.role || 'USER',
+                status: data.status || 'PENDING'
+            }
         });
 
         const { password: _p, ...safeNewData } = result;
 
+        try {
+            await axios.post(`${config.services.master}/master/profile`, {
+                action: 'CREATE',
+                data: {
+                    id_pengguna: result.id,
+                    nama_lengkap: data.nama_lengkap || result.username,
+                }
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${config.internalApiKey}`,
+                    'x-internal-key': config.internalApiKey,
+                    'Content-Type': 'application/json'
+                }
+            });
+            console.log(`🚀 [RBAC-SYNC] Profile created for user ${result.id}`);
+        } catch (error: any) {
+            console.error(`❌ [RBAC-SYNC] Failed to create master profile: ${error.response?.data?.message || error.message}`);
+        }
+
+        // 4. Record Audit Trail
         recordAuditTrail({
             req,
             tableName: 'users',

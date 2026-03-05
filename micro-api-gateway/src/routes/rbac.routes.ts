@@ -7,7 +7,7 @@ import { onProxyReq, onProxyRes } from '../utils/proxyHelper';
 
 const router = Router();
 
-router.use('/users', validateAppId, validateToken, createProxyMiddleware({
+router.use('/', validateAppId, validateToken, createProxyMiddleware({
     target: config.services.rbac,
     changeOrigin: true,
     on: {
@@ -15,7 +15,7 @@ router.use('/users', validateAppId, validateToken, createProxyMiddleware({
         proxyRes: onProxyRes
     },
     pathRewrite: {
-        '^/': '/users/'
+        '^/': ''
     }
 }));
 
@@ -27,44 +27,11 @@ router.use('/users/get-by-id', validateAppId, validateToken, createProxyMiddlewa
         proxyRes: onProxyRes
     },
     pathRewrite: {
-        '^/': '/users/get-by-id/'
+        '^/': '/get-by-id/'
     }
 }));
 
-router.use('/user-groups', validateAppId, validateToken, createProxyMiddleware({
-    target: config.services.rbac,
-    changeOrigin: true,
-    on: {
-        proxyReq: onProxyReq,
-        proxyRes: onProxyRes
-    },
-    pathRewrite: {
-        '^/': '/user-groups/'
-    }
-}));
 
-router.use('/roles/permissions', validateAppId, validateToken, createProxyMiddleware({
-    target: config.services.rbac,
-    changeOrigin: true,
-    on: {
-        proxyReq: onProxyReq,
-        proxyRes: onProxyRes
-    },
-    pathRewrite: {
-        '^/': '/roles/permissions/'
-    }
-}));
 
-router.use('/roles/role-permissions', validateAppId, validateToken, createProxyMiddleware({
-    target: config.services.rbac,
-    changeOrigin: true,
-    on: {
-        proxyReq: onProxyReq,
-        proxyRes: onProxyRes
-    },
-    pathRewrite: {
-        '^/': '/roles/role-permissions/'
-    }
-}));
 
 export default router;

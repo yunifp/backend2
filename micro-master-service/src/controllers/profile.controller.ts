@@ -58,5 +58,15 @@ export const ProfileController = {
         } catch (error: any) {
             return res.status(500).json({ success: false, message: error.message });
         }
+    },
+
+    async createNewProfile(req: Request, res: Response) {
+        try {
+            const inputData = req.body;
+            const result = await ProfileService.create(req, inputData);
+            return res.status(201).json({ success: true, data: serializeData(result) });
+        } catch (error: any) {
+            return res.status(500).json({ success: false, message: error.message });
+        }
     }
 };

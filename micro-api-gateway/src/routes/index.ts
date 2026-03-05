@@ -20,8 +20,8 @@ router.use('/auth', authLimiter, createProxyMiddleware({
 }));
 
 
-router.use('/', globalLimiter, rbacRoutes);
-router.use('/', globalLimiter, masterRoutes);
+router.use('/master', globalLimiter, masterRoutes);
+router.use('/rbac', globalLimiter, rbacRoutes);
 router.use('/', globalLimiter, notificationRoutes);
 router.use('/', globalLimiter, logsRoutes);
 

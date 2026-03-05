@@ -16,7 +16,12 @@ export const onProxyRes = (proxyRes: any, req: any, res: any) => {
 
 export const onProxyReq = (proxyReq: any, req: any, res: any) => {
     proxyReq.setHeader('x-internal-key', config.internalApiKey);
+
     if (req.body) {
         fixRequestBody(proxyReq, req);
     }
+
+    // Gunakan req.originalUrl dan buang /api untuk log yang akurat
+    const cleanedPath = req.originalUrl.replace(/^\/api/, '');
+    console.log(`🚀 [GATEWAY] ${req.method} ${req.originalUrl} -> PROXYING TO TARGET PATH: ${cleanedPath}`);
 };

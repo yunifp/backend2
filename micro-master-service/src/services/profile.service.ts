@@ -45,7 +45,7 @@ export const ProfileService = {
         const result = await prisma.profile.create({
             data: {
                 ...inputData,
-                tanggal_lahir: new Date(inputData.tanggal_lahir),
+                tanggal_lahir: inputData.tanggal_lahir ? new Date(inputData.tanggal_lahir) : null,
                 tanggal_wisuda: inputData.tanggal_wisuda ? new Date(inputData.tanggal_wisuda) : null,
             }
         });
@@ -61,12 +61,22 @@ export const ProfileService = {
         const oldData = await prisma.profile.findUnique({ where: { id_pengguna: id } });
         if (!oldData) throw new Error("Profil tidak ditemukan.");
 
+        // 1. BUANG properti yang bisa menyebabkan error pada Prisma Update
+        // Kita buang 'prodi' (objek relasi) dan 'id_pengguna' (Primary Key) dari payload
+        const { prodi, id_pengguna, ...payload } = inputData;
+
         const result = await prisma.profile.update({
             where: { id_pengguna: id },
             data: {
-                ...inputData,
-                tanggal_lahir: inputData.tanggal_lahir ? new Date(inputData.tanggal_lahir) : undefined,
-                tanggal_wisuda: inputData.tanggal_wisuda ? new Date(inputData.tanggal_wisuda) : undefined,
+                ...payload,
+                // 2. Pastikan konversi tipe data Int untuk field angka
+                program_studi_id: payload.program_studi_id ? Number(payload.program_studi_id) : null,
+                angkatan: payload.angkatan ? Number(payload.angkatan) : null,
+                tahun_lulus: payload.tahun_lulus ? Number(payload.tahun_lulus) : null,
+
+                // 3. Pastikan penanganan tanggal yang aman
+                tanggal_lahir: payload.tanggal_lahir ? new Date(payload.tanggal_lahir) : null,
+                tanggal_wisuda: payload.tanggal_wisuda ? new Date(payload.tanggal_wisuda) : null,
             }
         });
 
